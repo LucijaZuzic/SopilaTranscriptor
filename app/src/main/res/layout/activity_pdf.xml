@@ -38,7 +38,7 @@
                 android:layout_marginStart="20dp"
                 android:layout_marginLeft="20dp"
                 android:textColor="@color/black"
-                android:text="Sadila_je_Mare_20190526.pdf"
+                tools:text="Sadila_je_Mare_20190526.pdf"
                 android:layout_gravity="center_vertical"
                 android:gravity="center_vertical"
                 android:textSize="20sp"
@@ -70,7 +70,7 @@
                 android:layout_marginStart="20dp"
                 android:layout_marginLeft="20dp"
                 android:textColor="@color/black"
-                android:text="Audio taken: 26/May/2019"
+                tools:text="Audio taken: 26/May/2019"
                 android:layout_gravity="center_vertical"
                 android:gravity="center_vertical"
                 android:textSize="13sp" />
@@ -99,7 +99,7 @@
                 android:textColor="@color/black"
                 android:layout_gravity="center_vertical"
                 android:gravity="center_vertical"
-                android:text="Filesize: 452 KB"
+                tools:text="Filesize: 452 KB"
                 android:textSize="13sp" />
 
         </LinearLayout>
@@ -126,7 +126,7 @@
                 android:textColor="@color/black"
                 android:layout_gravity="center_vertical"
                 android:gravity="center_vertical"
-                android:text="@string/location_default"
+                android:text="@string/location_not_available"
                 android:textSize="13sp" />
 
             <Button
@@ -140,7 +140,7 @@
                 android:textSize="12sp"
                 android:textAllCaps="false"
                 android:drawableLeft="@drawable/location_icon"
-                android:text="Show on map..."/>
+                android:text="@string/show_on_map"/>
 
         </LinearLayout>
 
@@ -150,22 +150,14 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_below="@+id/layout_item"
         android:background="@color/black"/>
 
     <LinearLayout
+        android:id="@+id/pdf_container_layout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:gravity="center_horizontal"
-        android:orientation="vertical"
-        android:layout_weight="0.75">
-
-        <com.github.barteksc.pdfviewer.PDFView
-            android:id="@+id/pdfView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
-
-    </LinearLayout>
+        android:layout_weight="0.75"
+        android:orientation="vertical" />
 
 
 </LinearLayout>

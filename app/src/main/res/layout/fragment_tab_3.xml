@@ -1,17 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".tab_fragments.TabFragment3">
 
-    <android.support.v7.widget.RecyclerView
+    <!-- PDF List View -->
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view_tab3"
-        android:scrollbars="vertical"
-        android:adjustViewBounds="true"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/action_bar_height">
+        android:layout_height="match_parent"
+        android:scrollbars="vertical" />
 
-    </android.support.v7.widget.RecyclerView>
+    <!-- PDF Detail View (Hidden by default) -->
+    <LinearLayout
+        android:id="@+id/pdf_detail_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@android:color/white"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:background="@color/my_gray">
+
+            <ImageButton
+                android:id="@+id/back_to_list"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_revert"
+                android:contentDescription="Back" />
+
+            <TextView
+                android:id="@+id/pdf_detail_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="8dp"
+                android:textStyle="bold"
+                android:ellipsize="end"
+                android:singleLine="true" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="8dp"
+            android:background="@color/my_gray">
+
+            <TextView
+                android:id="@+id/pdf_detail_info"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="12sp" />
+
+            <Button
+                android:id="@+id/pdf_detail_map_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="35dp"
+                android:textSize="12sp"
+                android:textAllCaps="false"
+                android:drawableLeft="@drawable/location_icon"
+                android:text="Show on map..."/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/pdf_container_layout_tab3"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical" />
+    </LinearLayout>
+
 </FrameLayout>

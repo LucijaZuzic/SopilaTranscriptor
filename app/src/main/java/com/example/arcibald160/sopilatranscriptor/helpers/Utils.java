@@ -1,6 +1,6 @@
 package com.example.arcibald160.sopilatranscriptor.helpers;
 
-import android.arch.core.util.Function;
+
 import android.content.Context;
 import android.content.DialogInterface;
 import android.media.MediaMetadataRetriever;
@@ -8,8 +8,9 @@ import android.media.MediaScannerConnection;
 import android.os.Build;
 import android.os.Environment;
 import android.os.StatFs;
-import android.support.annotation.RequiresApi;
-import android.support.v7.app.AlertDialog;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
+import androidx.arch.core.util.Function;
 import android.util.Log;
 import android.widget.EditText;
 
@@ -28,11 +29,11 @@ public class Utils {
     /**
      * Function to convert milliseconds time to
      * Timer Format
-     * Hours:Minutes:Seconds
+     * 01 m 05 s
      */
     public static String formatMiliseconds(long milliseconds) {
 
-        return  String.format("%02d:%02ds",
+        return  String.format("%02d m %02d s",
                 TimeUnit.MILLISECONDS.toMinutes(milliseconds),
                 TimeUnit.MILLISECONDS.toSeconds(milliseconds) -
                         TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(milliseconds)));
@@ -68,6 +69,7 @@ public class Utils {
             return null;
         }
         String durationStr = mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION);
+        if (durationStr == null) return "00 m 00 s";
         return Utils.formatMiliseconds(Long.parseLong(durationStr));
     }
 
@@ -88,7 +90,7 @@ public class Utils {
     }
 
     public static File getDownloadsDir(Context context) {
-        return new File(Environment.getExternalStorageDirectory(), context.getString(R.string.pdf_folder));
+        return new File(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), context.getString(R.string.pdf_folder));
     }
 
     public static boolean writeResponseBodyToDisk(ResponseBody body, Context context, String TAG, String filename) {

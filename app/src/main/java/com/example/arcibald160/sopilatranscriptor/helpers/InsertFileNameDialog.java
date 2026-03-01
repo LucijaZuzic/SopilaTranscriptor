@@ -5,10 +5,10 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.media.MediaScannerConnection;
 import android.os.Bundle;
-import android.os.Environment;
-import android.support.v4.app.DialogFragment;
+import androidx.fragment.app.DialogFragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,16 +31,22 @@ public class InsertFileNameDialog extends DialogFragment {
 
     private String filename = "";
     private File mFile, recordFolder;
+    private double mLat, mLon;
+    private String mLocText;
 
     private String LOG_NAME = "InsertFileNameDialog";
 
-    public InsertFileNameDialog(File tempFile, Context context) {
+    public InsertFileNameDialog(File tempFile, Context context, double lat, double lon, String locText) {
         mFile = tempFile;
-        recordFolder = new File(Environment.getExternalStorageDirectory(), context.getString(R.string.rec_folder));
-//        create folder for recordings if it does not exist
+        mLat = lat;
+        mLon = lon;
+        mLocText = locText;
+        recordFolder = new File(context.getExternalFilesDir(null), context.getString(R.string.rec_folder));
+
+        // Create folder if it doesn't exist
         if (!recordFolder.exists()) {
             if (!recordFolder.mkdirs()) {
-                Log.d(LOG_NAME, "failed to create directory");
+                Log.e(LOG_NAME, "failed to create directory: " + recordFolder.getAbsolutePath());
             }
         }
     }
@@ -60,7 +66,7 @@ public class InsertFileNameDialog extends DialogFragment {
 
         filenameEditText.setText(filename);
 
-//        create recording
+        // create recording
         builder.setView(dialogView)
                .setMessage(R.string.filename_dialog_header)
                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
@@ -74,6 +80,7 @@ public class InsertFileNameDialog extends DialogFragment {
 
                         try {
                             copyFile(mFile, newFile);
+                            saveLocation(newFile.getName());
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -97,6 +104,15 @@ public class InsertFileNameDialog extends DialogFragment {
         return builder.create();
     }
 
+    private void saveLocation(String fileName) {
+        if (getActivity() == null) return;
+        SharedPreferences prefs = getActivity().getSharedPreferences(getString(R.string.sp_secret_key), Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putFloat("lat_" + fileName, (float) mLat);
+        editor.putFloat("lon_" + fileName, (float) mLon);
+        editor.putString("loc_" + fileName, mLocText);
+        editor.apply();
+    }
 
     private static void copyFile(File src, File dst) throws IOException {
         InputStream in = new FileInputStream(src);

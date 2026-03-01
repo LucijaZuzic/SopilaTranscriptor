@@ -5,13 +5,54 @@
     android:layout_height="match_parent"
     tools:context=".tab_fragments.TabFragment1">
 
-    <android.support.v7.widget.RecyclerView
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_view_tab1"
         android:scrollbars="vertical"
         android:adjustViewBounds="true"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/action_bar_height">
-    </android.support.v7.widget.RecyclerView>
+        android:layout_height="match_parent"
+        android:layout_marginBottom="@dimen/action_bar_height"
+    />
+
+    <LinearLayout
+        android:id="@+id/empty_view_tab1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:padding="20dp">
+
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/mic_img"
+            android:alpha="0.5"
+            tools:ignore="ContentDescription" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/no_recordings"
+            android:textSize="18sp"
+            android:layout_marginTop="10dp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/record_first_audio"
+            android:gravity="center"
+            android:layout_marginTop="5dp" />
+
+        <Button
+            android:id="@+id/btn_go_to_record"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/record_now"
+            android:textAllCaps="false" />
+
+    </LinearLayout>
 
 </FrameLayout>

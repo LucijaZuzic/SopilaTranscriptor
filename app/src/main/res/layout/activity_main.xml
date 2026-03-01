@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <android.support.design.widget.TabLayout
+    <com.google.android.material.tabs.TabLayout
         android:id="@+id/tab_layout"
         android:layout_width="match_parent"
         android:layout_height="50dp"
@@ -14,23 +14,24 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <android.support.design.widget.TabItem
+        <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1" />
+            android:text="@string/tab_recordings" />
 
-        <android.support.design.widget.TabItem
+        <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="2" />
+            android:text="@string/tab_record" />
 
-        <android.support.design.widget.TabItem
+        <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="3" />
-    </android.support.design.widget.TabLayout>
+            android:text="@string/tab_sheets" />
 
-    <android.support.v4.view.ViewPager
+    </com.google.android.material.tabs.TabLayout>
+
+    <androidx.viewpager.widget.ViewPager
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/view_pager"
         android:layout_width="match_parent"
@@ -42,4 +43,4 @@
         app:layout_constraintTop_toBottomOf="@+id/tab_layout"
         app:layout_constraintVertical_bias="0.0"/>
 
-</android.support.constraint.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

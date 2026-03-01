@@ -10,10 +10,10 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="@dimen/recycler_view_row_height"
+        android:layout_height="80dp"
         android:orientation="horizontal">
 
-        <android.support.constraint.ConstraintLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
@@ -30,49 +30,59 @@
 
             <TextView
                 android:id="@+id/recording_name"
-                android:layout_width="260dp"
-                android:layout_height="35dp"
-                android:text="mala0"
-                android:textSize="20sp"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                tools:text="mala0"
+                android:textSize="18sp"
+                android:textStyle="bold"
                 app:layout_constraintEnd_toStartOf="@+id/more_button"
                 app:layout_constraintStart_toEndOf="@+id/play_recording"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
+                android:id="@+id/recording_location"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/location_not_available"
+                android:textSize="14sp"
+                app:layout_constraintEnd_toStartOf="@+id/more_button"
+                app:layout_constraintStart_toStartOf="@+id/recording_name"
+                app:layout_constraintTop_toBottomOf="@+id/recording_name" />
+
+            <TextView
                 android:id="@+id/time_and_size"
                 android:layout_width="wrap_content"
-                android:layout_height="25dp"
-                android:layout_marginBottom="8dp"
-                android:text="00:04s-1.7 MB"
-                android:textSize="16sp"
+                android:layout_height="wrap_content"
+                tools:text="00:04s - 1.7 MB"
+                android:textSize="12sp"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="@+id/recording_name" />
+                app:layout_constraintStart_toStartOf="@+id/recording_name"
+                app:layout_constraintTop_toBottomOf="@+id/recording_location" />
 
             <TextView
                 android:id="@+id/date_created"
                 android:layout_width="wrap_content"
-                android:layout_height="25dp"
-                android:layout_marginBottom="8dp"
-                android:text="2018-11-11"
-                android:textSize="16sp"
-                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                tools:text="2018-11-11"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toBottomOf="@+id/time_and_size"
                 app:layout_constraintEnd_toStartOf="@+id/more_button"
-                app:layout_constraintHorizontal_bias="0.487"
-                app:layout_constraintStart_toEndOf="@+id/time_and_size" />
+                app:layout_constraintTop_toTopOf="@+id/time_and_size" />
 
             <ImageButton
                 android:id="@+id/more_button"
                 android:layout_width="21dp"
                 android:layout_height="23dp"
                 android:layout_marginEnd="15dp"
-                android:layout_marginRight="15dp"
+                android:background="@android:color/transparent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                android:background="@android:color/transparent"
                 app:srcCompat="@drawable/more_options"
                 tools:ignore="VectorDrawableCompat" />
-        </android.support.constraint.ConstraintLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </LinearLayout>
     <View

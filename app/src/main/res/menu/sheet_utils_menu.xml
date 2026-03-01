@@ -8,4 +8,16 @@
         android:id="@+id/delete_item"
         android:title="@string/delete_label"
         android:visible="true" />
+    <item
+        android:id="@+id/show_on_map_item"
+        android:title="Show on map"
+        android:visible="true" />
+    <item
+        android:id="@+id/fetch_location_item"
+        android:title="Fetch location"
+        android:visible="true" />
+    <item
+        android:id="@+id/adjust_location_item"
+        android:title="Adjust location"
+        android:visible="true" />
 </menu>

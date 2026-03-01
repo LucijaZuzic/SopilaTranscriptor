@@ -2,49 +2,51 @@ package com.example.arcibald160.sopilatranscriptor.tab_fragments;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.AudioFormat;
 import android.media.MediaRecorder;
 import android.media.MediaScannerConnection;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
-import android.support.annotation.RequiresApi;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.example.arcibald160.sopilatranscriptor.MapActivity;
 import com.example.arcibald160.sopilatranscriptor.helpers.InsertFileNameDialog;
 import com.example.arcibald160.sopilatranscriptor.R;
 import com.example.arcibald160.sopilatranscriptor.helpers.Utils;
+import com.example.arcibald160.sopilatranscriptor.helpers.VisualizerView;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
-import io.gresse.hugo.vumeterlibrary.VuMeterView;
 import omrecorder.AudioRecordConfig;
 import omrecorder.OmRecorder;
 import omrecorder.PullTransport;
@@ -56,17 +58,22 @@ import pl.bclogic.pulsator4droid.library.PulsatorLayout;
 public class TabFragment2 extends Fragment {
 
     private Recorder recorder;
-    private File tempRecFile = new File(Environment.getExternalStorageDirectory(), "demo.wav");
+
+    private File tempRecFile;
     private Runnable updater;
     private long durationSec = 0;
-    private Handler timerHandler = new Handler();
-    private VuMeterView musicEqualizer;
+    private final Handler timerHandler = new Handler();
+    private VisualizerView musicVisualizer;
     private FusedLocationProviderClient fusedLocationClient;
-    private Button locationButton;
-    private LocationListener locationListener;
     private LocationManager mLocationManager;
     TextView durationView, sizeView, freeView, locationView, dateView;
     Location location = null;
+
+    private static final int PERMISSION_LOCATION_REQUEST_CODE = 100;
+    private static final int ADJUST_LOCATION_REQUEST_CODE = 101;
+
+    // Moving peak for auto-gain
+    private double dynamicPeak = 1000;
 
     public TabFragment2() {
         // Required empty public constructor
@@ -80,70 +87,79 @@ public class TabFragment2 extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_tab_2, container, false);
 
+        if (getContext() != null) {
+            tempRecFile = new File(getContext().getFilesDir(), "demo.wav");
+        }
+        
         final Switch mySwitch = view.findViewById(R.id.switch1);
         mySwitch.setClickable(false);
 
-        musicEqualizer = view.findViewById(R.id.vumeter);
+        musicVisualizer = view.findViewById(R.id.visualizer);
         durationView = view.findViewById(R.id.time_recorded);
         sizeView = view.findViewById(R.id.size_recorded);
         freeView = view.findViewById(R.id.free_space);
-        locationButton = view.findViewById(R.id.location_img_btn);
+        Button locationButton = view.findViewById(R.id.location_img_btn);
         locationView = view.findViewById(R.id.location_text_view);
         dateView = view.findViewById(R.id.date_view);
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(view.getContext());
+        if (getContext() != null) {
+            fusedLocationClient = LocationServices.getFusedLocationProviderClient(getContext());
+        }
+        
         final PulsatorLayout pulsator = view.findViewById(R.id.pulsator);
 
         Date c = Calendar.getInstance().getTime();
-        SimpleDateFormat df = new SimpleDateFormat("dd/MMM/yyyy");
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd", new Locale("hr", "HR"));
         String formattedDate = df.format(c);
         dateView.setText(formattedDate);
 
         // Show location on map
-        Button fakeButton = view.findViewById(R.id.buttonFake);
-        fakeButton.setOnClickListener(new View.OnClickListener() {
+        Button showOnMapBtn = view.findViewById(R.id.buttonFake);
+        showOnMapBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (location != null) {
                     Intent intent = new Intent(getActivity(), MapActivity.class);
-                    intent.putExtra("LONGITUDE", location.getLongitude());
-                    intent.putExtra("LATITUDE", location.getLatitude());
+                    intent.putExtra(MapActivity.EXTRA_LONGITUDE, location.getLongitude());
+                    intent.putExtra(MapActivity.EXTRA_LATITUDE, location.getLatitude());
+                    intent.putExtra(MapActivity.EXTRA_ADJUST_MODE, false);
                     startActivity(intent);
+                } else {
+                    // Automatically try fetching if location is unavailable
+                    fetchLocation(true);
                 }
             }
         });
 
         // Acquire a reference to the system Location Manager
-        mLocationManager = (LocationManager) view.getContext().getSystemService(view.getContext().LOCATION_SERVICE);
+        if (getActivity() != null) {
+            mLocationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+        }
+        
         locationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                location = getLastKnownLocation();
-                if (location != null) {
-                    Geocoder geocoder = new Geocoder(getContext(), Locale.getDefault());
-                    List<Address> addresses = null;
-                    try {
-                        addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    List<String> stringAddresses = Arrays.asList(addresses.get(0).getAddressLine(0).split(","));
-//                    String cityAddress = stringAddresses.get(0);
-                    String cityName = stringAddresses.get(1).replaceAll("\\d","").replaceAll(" ","");
-                    String countryName = stringAddresses.get(2).replaceAll(" ","");
-                    locationView.setText(String.format("%s, %s", cityName, countryName));
-                }
+                fetchLocation(true);
+            }
+        });
+
+        locationView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startAdjustLocation();
             }
         });
 
         freeView.setText(Utils.getAvailableInternalMemorySize(""));
 
-        MediaScannerConnection.scanFile(
-                view.getContext(),
-                new String[]{tempRecFile.getAbsolutePath()},
-                null,
-                null
-        );
+        if (tempRecFile != null && getContext() != null) {
+            MediaScannerConnection.scanFile(
+                    getContext(),
+                    new String[]{tempRecFile.getAbsolutePath()},
+                    null,
+                    null
+            );
+        }
 
         final ToggleButton recButton = view.findViewById(R.id.rec_button);
 
@@ -153,33 +169,59 @@ public class TabFragment2 extends Fragment {
                 if (recButton.isChecked()) {
                     pulsator.bringToFront();
                     pulsator.start();
-                    musicEqualizer.resume(true);
+                    
+                    PullableSource pullableSource = new PullableSource.Default(
+                            new AudioRecordConfig.Default(
+                                    MediaRecorder.AudioSource.MIC,
+                                    AudioFormat.ENCODING_PCM_16BIT,
+                                    AudioFormat.CHANNEL_IN_MONO,
+                                    44100
+                            )
+                    );
+
                     recorder = OmRecorder.wav(
-                            new PullTransport.Default(new PullableSource.Default(
-                                    new AudioRecordConfig.Default(
-                                            MediaRecorder.AudioSource.MIC,
-                                            AudioFormat.ENCODING_PCM_16BIT,
-                                            AudioFormat.CHANNEL_IN_MONO,
-                                            44100
-                                    )
-                            )),
+                            new PullTransport.Default(pullableSource, new PullTransport.OnAudioChunkPulledListener() {
+                                @Override
+                                public void onAudioChunkPulled(omrecorder.AudioChunk audioChunk) {
+                                    animateVuMeter(audioChunk.maxAmplitude());
+                                }
+                            }),
                             tempRecFile
                     );
 
                     try {
                         recorder.startRecording();
                         mySwitch.setChecked(true);
+                        if (location == null) {
+                            fetchLocation(false);
+                        }
                     } finally {
                         updateRecordInfo();
                     }
                 } else {
                     pulsator.stop();
-                    musicEqualizer.stop(true);
-                    InsertFileNameDialog filenameDialog = new InsertFileNameDialog(tempRecFile, view.getContext());
-                    filenameDialog.show(getActivity().getSupportFragmentManager(), "filename");
+                    if (musicVisualizer != null) {
+                        musicVisualizer.clear();
+                    }
+                    
+                    if (getActivity() != null) {
+                        double lat = 0, lon = 0;
+                        String locText = "";
+                        if (location != null) {
+                            lat = location.getLatitude();
+                            lon = location.getLongitude();
+                        }
+                        if (locationView != null) {
+                            locText = locationView.getText().toString();
+                        }
+                        InsertFileNameDialog filenameDialog = new InsertFileNameDialog(tempRecFile, getContext(), lat, lon, locText);
+                        filenameDialog.show(getActivity().getSupportFragmentManager(), "filename");
+                    }
 
                     try {
-                        recorder.stopRecording();
+                        if (recorder != null) {
+                            recorder.stopRecording();
+                        }
                         mySwitch.setChecked(false);
 //                        disable updater
                         resetRecordInfo();
@@ -187,46 +229,135 @@ public class TabFragment2 extends Fragment {
                         e.printStackTrace();
                     }
 
-                    MediaScannerConnection.scanFile(
-                            view.getContext(),
-                            new String[]{tempRecFile.getAbsolutePath()},
-                            null,
-                            null
-                    );
+                    if (tempRecFile != null && getContext() != null) {
+                        MediaScannerConnection.scanFile(
+                                getContext(),
+                                new String[]{tempRecFile.getAbsolutePath()},
+                                null,
+                                null
+                        );
+                    }
 
                 }
             }
         });
+
         return view;
     }
 
-    private Location getLastKnownLocation() {
-        mLocationManager = (LocationManager) getContext().getSystemService(getContext().LOCATION_SERVICE);
-        List<String> providers = mLocationManager.getProviders(true);
-        Location bestLocation = null;
-        for (String provider : providers) {
-            if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                    && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-                continue;
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Immediately fetch location on startup
+        if (location == null) {
+            fetchLocation(false);
+        }
+    }
+
+    private void animateVuMeter(final double maxAmplitude) {
+        if (musicVisualizer != null) {
+            // Auto-gain peak tracking
+            if (maxAmplitude > dynamicPeak) {
+                dynamicPeak = maxAmplitude;
+            } else {
+                // Decay peak to maintain sensitivity
+                dynamicPeak = Math.max(1000, dynamicPeak * 0.98);
             }
 
-            Location l = mLocationManager.getLastKnownLocation(provider);
-            if (l == null) {
-                continue;
-            }
-            if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy()) {
-                // Found best last known location: %s", l);
-                bestLocation = l;
+            musicVisualizer.post(new Runnable() {
+                @Override
+                public void run() {
+                    // Normalize relative to current dynamic peak
+                    float normalized = (float) (maxAmplitude / dynamicPeak);
+                    
+                    // Boost small variations with a square root curve
+                    float boosted = (float) Math.sqrt(normalized);
+                    
+                    musicVisualizer.addAmplitude(boosted);
+                }
+            });
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private void fetchLocation(final boolean showToast) {
+        if (getContext() != null && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSION_LOCATION_REQUEST_CODE);
+            return;
+        }
+
+        if (fusedLocationClient != null) {
+            fusedLocationClient.getLastLocation().addOnSuccessListener(new OnSuccessListener<Location>() {
+                @Override
+                public void onSuccess(Location loc) {
+                    if (loc != null) {
+                        location = loc;
+                        updateLocationUI(loc);
+                        if (showToast) {
+                            Toast.makeText(getContext(), getString(R.string.location_success), Toast.LENGTH_SHORT).show();
+                        }
+                    } else if (showToast) {
+                        Toast.makeText(getContext(), getString(R.string.location_fail), Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        }
+    }
+
+    private void updateLocationUI(Location loc) {
+        if (getContext() != null) {
+            Geocoder geocoder = new Geocoder(getContext(), Locale.getDefault());
+            try {
+                List<Address> addresses = geocoder.getFromLocation(loc.getLatitude(), loc.getLongitude(), 1);
+                if (addresses != null && !addresses.isEmpty()) {
+                    Address address = addresses.get(0);
+                    String cityName = address.getLocality();
+                    if (cityName == null) cityName = address.getSubAdminArea();
+                    String countryName = address.getCountryName();
+                    locationView.setText(String.format("%s, %s", cityName, countryName));
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
-        return bestLocation;
+    }
+
+    private void startAdjustLocation() {
+        if (location == null) {
+            Toast.makeText(getContext(), "Fetch current location first", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (getActivity() != null) {
+            Intent intent = new Intent(getActivity(), MapActivity.class);
+            intent.putExtra(MapActivity.EXTRA_LATITUDE, location.getLatitude());
+            intent.putExtra(MapActivity.EXTRA_LONGITUDE, location.getLongitude());
+            intent.putExtra(MapActivity.EXTRA_ADJUST_MODE, true);
+            startActivityForResult(intent, ADJUST_LOCATION_REQUEST_CODE);
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == ADJUST_LOCATION_REQUEST_CODE && resultCode == Activity.RESULT_OK && data != null) {
+            double newLat = data.getDoubleExtra(MapActivity.EXTRA_LATITUDE, 0);
+            double newLon = data.getDoubleExtra(MapActivity.EXTRA_LONGITUDE, 0);
+            if (location == null) {
+                location = new Location("manual");
+            }
+            location.setLatitude(newLat);
+            location.setLongitude(newLon);
+            updateLocationUI(location);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == PERMISSION_LOCATION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                fetchLocation(false);
+            }
+        }
     }
 
     private void updateRecordInfo() {
@@ -235,16 +366,19 @@ public class TabFragment2 extends Fragment {
             @Override
             public void run() {
 
-                String currDuration = String.format("%02d:%02ds",
+                String currDuration = String.format(Locale.getDefault(), "%02d m %02d s",
                         TimeUnit.SECONDS.toMinutes(durationSec),
                         durationSec - TimeUnit.MINUTES.toSeconds(TimeUnit.SECONDS.toMinutes(durationSec))
                 );
-                String currSize = Utils.formatFileSize(tempRecFile.length());
-
-                if (currDuration != null && currSize != null) {
-                    durationView.setText(currDuration);
-                    sizeView.setText(currSize);
+                
+                String currSize = "0 KB";
+                if (tempRecFile != null) {
+                    currSize = Utils.formatFileSize(tempRecFile.length());
                 }
+
+                durationView.setText(currDuration);
+                sizeView.setText(currSize);
+
 //                call update every second
                 timerHandler.postDelayed(updater,1000);
                 durationSec++;

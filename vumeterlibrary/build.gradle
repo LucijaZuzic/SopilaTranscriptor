@@ -1,0 +1,2 @@
+configurations.maybeCreate("default")
+artifacts.add("default", file('vumeterlibrary-1.0.17.aar'))

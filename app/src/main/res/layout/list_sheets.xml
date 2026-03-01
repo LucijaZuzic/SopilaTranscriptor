@@ -10,10 +10,10 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="@dimen/recycler_view_row_height"
+        android:layout_height="80dp"
         android:orientation="horizontal">
 
-        <android.support.constraint.ConstraintLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
@@ -21,59 +21,68 @@
                 android:id="@+id/pdf_icon"
                 android:layout_width="45dp"
                 android:layout_height="45dp"
-                android:layout_marginStart="24dp"
-                android:layout_marginLeft="24dp"
                 android:background="@android:color/transparent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.52"
                 app:srcCompat="@drawable/pdf_icon"
                 tools:ignore="VectorDrawableCompat" />
 
             <TextView
                 android:id="@+id/sheet_name"
-                android:layout_width="260dp"
-                android:layout_height="35dp"
-                android:layout_marginStart="64dp"
-                android:layout_marginLeft="64dp"
-                android:layout_marginEnd="8dp"
-                android:layout_marginRight="8dp"
-                android:text="mala0"
-                android:textSize="20sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.0"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                tools:text="mala0"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toStartOf="@+id/more_button"
                 app:layout_constraintStart_toEndOf="@+id/pdf_icon"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
+                android:id="@+id/sheet_location"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/location_not_available"
+                android:textSize="14sp"
+                app:layout_constraintEnd_toStartOf="@+id/more_button"
+                app:layout_constraintStart_toStartOf="@+id/sheet_name"
+                app:layout_constraintTop_toBottomOf="@+id/sheet_name" />
+
+            <TextView
                 android:id="@+id/sheet_size"
                 android:layout_width="wrap_content"
-                android:layout_height="25dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
-                android:text="1.7 MB"
-                android:textSize="16sp"
+                android:layout_height="wrap_content"
+                tools:text="1.7 MB"
+                android:textSize="12sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="@+id/sheet_name"
-                app:layout_constraintTop_toTopOf="@+id/sheet_date_created" />
+                app:layout_constraintTop_toBottomOf="@+id/sheet_location" />
 
             <TextView
                 android:id="@+id/sheet_date_created"
                 android:layout_width="wrap_content"
-                android:layout_height="25dp"
-                android:layout_marginStart="64dp"
-                android:layout_marginLeft="64dp"
+                android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                android:layout_marginRight="8dp"
-                android:text="2018-11-11"
-                android:textSize="16sp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="@+id/sheet_name"
-                app:layout_constraintStart_toEndOf="@+id/sheet_size"
-                app:layout_constraintTop_toBottomOf="@+id/sheet_name" />
+                tools:text="2018-11-11"
+                android:textSize="12sp"
+                app:layout_constraintBottom_toBottomOf="@+id/sheet_size"
+                app:layout_constraintEnd_toStartOf="@+id/more_button"
+                app:layout_constraintTop_toTopOf="@+id/sheet_size" />
 
-        </android.support.constraint.ConstraintLayout>
+            <ImageButton
+                android:id="@+id/more_button"
+                android:layout_width="21dp"
+                android:layout_height="23dp"
+                android:layout_marginEnd="15dp"
+                android:background="@android:color/transparent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/more_options"
+                tools:ignore="VectorDrawableCompat" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </LinearLayout>
     <View
