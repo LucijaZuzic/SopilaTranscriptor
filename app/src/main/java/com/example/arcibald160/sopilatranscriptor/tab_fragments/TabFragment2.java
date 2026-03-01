@@ -35,6 +35,9 @@ import com.example.arcibald160.sopilatranscriptor.R;
 import com.example.arcibald160.sopilatranscriptor.helpers.Utils;
 import com.example.arcibald160.sopilatranscriptor.helpers.VisualizerView;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 
@@ -105,6 +108,9 @@ public class TabFragment2 extends Fragment {
         if (getContext() != null) {
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(getContext());
         }
+
+        // Immediately try to fetch location as soon as fragment starts
+        fetchLocation(false);
         
         final PulsatorLayout pulsator = view.findViewById(R.id.pulsator);
 
@@ -254,6 +260,15 @@ public class TabFragment2 extends Fragment {
         }
     }
 
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        // Fetch location when tab becomes visible
+        if (isVisibleToUser && location == null) {
+            fetchLocation(false);
+        }
+    }
+
     private void animateVuMeter(final double maxAmplitude) {
         if (musicVisualizer != null) {
             // Auto-gain peak tracking
@@ -296,12 +311,46 @@ public class TabFragment2 extends Fragment {
                         if (showToast) {
                             Toast.makeText(getContext(), getString(R.string.location_success), Toast.LENGTH_SHORT).show();
                         }
-                    } else if (showToast) {
-                        Toast.makeText(getContext(), getString(R.string.location_fail), Toast.LENGTH_SHORT).show();
+                    } else {
+                        // If last location is null, try to request a fresh one
+                        requestFreshLocation(showToast);
                     }
                 }
             });
         }
+    }
+
+    @SuppressLint("MissingPermission")
+    private void requestFreshLocation(final boolean showToast) {
+        if (fusedLocationClient == null) return;
+        
+        LocationRequest locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(1000);
+        locationRequest.setFastestInterval(500);
+        locationRequest.setNumUpdates(1);
+
+        fusedLocationClient.requestLocationUpdates(locationRequest, new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    if (showToast) Toast.makeText(getContext(), getString(R.string.location_fail), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                for (Location loc : locationResult.getLocations()) {
+                    if (loc != null) {
+                        location = loc;
+                        updateLocationUI(loc);
+                        if (showToast) {
+                            Toast.makeText(getContext(), getString(R.string.location_success), Toast.LENGTH_SHORT).show();
+                        }
+                        // Stop updates after we get one
+                        fusedLocationClient.removeLocationUpdates(this);
+                        break;
+                    }
+                }
+            }
+        }, android.os.Looper.getMainLooper());
     }
 
     private void updateLocationUI(Location loc) {
